@@ -1,17 +1,21 @@
 # Problem 54 - Poker Hands
 # https://projecteuler.net/problem=54
 
-# Lesson learned: Avoid comparing ints in strings form.
+# Lesson learned: Avoid comparing ints in string form.
+
+# TODO: Break into smaller functions so this can be showed off.
+# TODO: Add tests.
+# TODO: Use the linter.
 
 import urllib.request
 from collections import Counter
 
-@time_this
+#@time_this
 def poker_hand_win_count():
     '''For a set of poker hands, determine the number of times Player 1 beats
     Player 2.
     
-    Assuming that there are no community cards, that all hands are valid, and
+    Assume there are no community cards, that all hands are valid, and
     that each hand has a clear winner.
     '''
     url = 'https://projecteuler.net/project/resources/p054_poker.txt'
@@ -27,30 +31,29 @@ def poker_hand_win_count():
             
     for ind, p1_hand in enumerate(p1_hands):
         p2_hand = p2_hands[ind]
-        p1_hand_value = evaluate_hand(p1_hand).split(' ')
-        p2_hand_value = evaluate_hand(p2_hand).split(' ')
-        
-        p1_hand_value = [int(num) for num in p1_hand_value]
-        p2_hand_value = [int(num) for num in p2_hand_value]
+        p1_hand_value = evaluate_hand(p1_hand)
+        p2_hand_value = evaluate_hand(p2_hand)
         
         for ind, p1_val in enumerate(p1_hand_value):
-            if p1_val > p2_hand_value[ind]:
-                # Player 1 wins
+            p2_val = p2_hand_value[ind]
+            if p1_val > p2_val:
+            # Player 1 wins
                 p1_win_count += 1
                 break
-            elif p1_val < p2_hand_value[ind]:
+            elif p1_val < p2_val:
                 # Player 2 wins
                 break
             else:
                 # Continue to get to tie-breakers
                 continue
+            
                 
     return f'p1 wins: {p1_win_count}'
         
-def evaluate_hand(hand: list):
+def evaluate_hand(hand: list) -> list:
     '''Returns value of hand, including tie-breaking kickers.
     
-    Returned value is a space-separated string. The first integer represents
+    Returned value is a list of int. The first integer represents
     overall hand strength, with following integers representing card values
     as shown below.
     
@@ -68,186 +71,181 @@ def evaluate_hand(hand: list):
     0 A B C D E - High card X, next-highest card Y, third-highest card Z
     '''
     
-    values = {'A': '14', 'K': '13', 'Q': '12', 'J': '11', 'T': '10'}
-    flush = True
-    straight = False
+    def is_flush(hand: list) -> bool:
+        '''Input format example: ['8C', 'TS', 'KC', '9H', '4S']
+        '''
+        suit = hand[0][1]
+        for card in hand:
+            if suit == card[1]:
+                continue
+            else:
+                return False
+        return True
+    
+    
+    def change_card_str_to_int(hand_as_strs: list) -> list:
+        '''Input format example: ['8C', 'TS', 'KC', '9H', '4S']
+        '''
+        CARD_VALUES = {'A': 14, 'K': 13, 'Q': 12, 'J': 11, 'T': 10}
+        cards_as_int = []
+        for card in hand_as_strs:
+            try:
+                cards_as_int.append(CARD_VALUES[card[0]])
+            except KeyError:
+                cards_as_int.append(int(card[0]))
+                continue
+                
+        cards_as_int.sort()
+            
+        return cards_as_int
+    
+    
+    def is_straight(card_values: list) -> bool:
+        '''Input example: [3, 14, 5, 10, 12]
+        '''
+        # Caution: Copy card_values parameter to another variable to avoid
+        # any appended 1s from bleeding out of this scope.
+        card_values_copy = card_values
+        # Append 1 to check for low straights.
+        if 14 in card_values_copy:        
+            if 2 in card_values_copy:
+                card_values_copy.append(0)
+        cards_as_str_for_is_straight = [str(num) for num in card_values_copy]
+        concat_values = ''.join(cards_as_str_for_is_straight)
+        # Card values were sorted in change_card_str_to_int().
+        if concat_values in '1234567891011121314':
+            return True
+        else:
+            return False
+    
+    cards_as_int = change_card_str_to_int(hand)
+    # Must use copy method here or iteratively append values to new list.
+    # Assigning cards_as_int to another variable leads to scope bleeding
+    # from inside is_straight().
+    cards_as_int_copy = cards_as_int.copy()
+    FLUSH = is_flush(hand)
+    STRAIGHT = is_straight(cards_as_int_copy)
     four_of_a_kind = False
     full_house = False
     
-    # Check for flush
-    # The only use of card suits is the 'flush' boolean variable
-    suits = []
-    for card in hand:
-        suits.append(card[1])
-    for suit in suits:
-        if suit == suits[0]:
-            pass
-        else:
-            flush = False
 
-    # Check for straight
-    card_values = []
-    straight_values = {'K': '13', 'Q': '12', 'J': '11', 'T': '10'}
-    ace_count = 0
     
-    for card in hand:
-        if card[0].isdigit():
-            card_values.append(card[0])
-        elif card[0] in straight_values.keys():
-            card_values.append(straight_values[card[0]])
-        elif card[0] == 'A':
-            ace_count += 1
-    # '1' to check for low straights, '14' for high straights
-    if '2' in card_values:
-        for _ in range(ace_count):
-            card_values.append('1')
-    elif '13' in card_values:
-        for _ in range(ace_count):
-            card_values.append('14')
-    # sort() method place '10' before '9'. Change to int to sort correctly.        
-    card_values = [int(num) for num in card_values]
-    card_values.sort()
-    # Convert int to str for the join() method
-    card_values = [str(num) for num in card_values]
-    concat_values = ''.join(card_values)
-    if concat_values in '1234567891011121314':
-        straight = True
-    
-    
-    # Clean up card_values variable before checking for pairs
-    for _ in range(ace_count):
-        if '1' in card_values:
-            card_values.remove('1')
-            card_values.append('14')
-        else:
-            # Add in aces which are not part of a straght
-            # If '13' aka king is in card_values, then '14' is also already there
-            if '13' not in card_values:
-                card_values.append('14')
-        #try:
-         #   card_values.remove('1')
-        #except ValueError:
-         #   pass
-    card_values = [int(num) for num in card_values]
-    
-    # Straight flush
-    if straight and flush:
-        return ' '.join(['8', highest_card(card_values)])
+    # Straight flush, the best hand.
+    if STRAIGHT and FLUSH:
+        return [8, max(cards_as_int)]
     
     
     # Check for pairs - full house, 4 of a kind, 3 of a kind, pair, two-pair.
     # If not 4 of a kind or full house, return flush or straight if appropriate.
-    unique_values = set(card_values)
-    counter = Counter(card_values)
-    max_set = 0
-    max_set_card = None
+    unique_values = set(cards_as_int)
+    counter = Counter(cards_as_int)
+    most_frequent_card = 0
+    most_freq_card_count = 0
     lowest_pair = None
-    for card in counter.keys():
-        # Find most frequent, highest value card (max_set_card)
+    # Equivalent to iterating through counter.keys()
+    for card in counter:
+        # Find most frequent, highest value card (most_frequent_card)
         # E.g. Four of a kind card in hand
         # E.g. Higher pair in a two pair hand
         # E.g. Highest card in flush or straight
-        if counter[card] > max_set:
-            max_set, max_set_card = counter[card], card
-        elif counter[card] == max_set:
+        if counter[card] > most_freq_card_count:
+            most_freq_card_count, most_frequent_card = counter[card], card
+        elif counter[card] == most_freq_card_count:
             # Revelant for sets (pairs, 3 of a kind, full house, 4 of a kind)
-            if card > max_set_card and max_set > 1:
-                lowest_pair, max_set_card = max_set_card, card
+            if card > most_frequent_card and most_freq_card_count > 1:
+                lowest_pair, most_frequent_card = most_frequent_card, card
             # Relevant only for hands without any sets (pairs, etc.)
-            elif card > max_set_card and max_set == 1:
-                max_set_card = card
+            elif card > most_frequent_card and most_freq_card_count == 1:
+                most_frequent_card = card
 
     # Following returns list of distinct card values        
     working_card_values = list(counter)
-    working_card_values.remove(max_set_card)
+    working_card_values.sort()
+    working_card_values.remove(most_frequent_card)
     if lowest_pair != None:
         working_card_values.remove(lowest_pair)
-    max_set_card = str(max_set_card)
 
     if len(unique_values) == 2:
         # Four of a kind or full house
-        if max_set == 4:
+        if most_freq_card_count == 4:
             # Four of a kind
             # Kicker should be only remaining value in list
             kicker = working_card_values[0]
-            return ' '.join(['7', max_set_card, str(kicker)])
+            return [7, most_frequent_card, kicker]
 
-        elif max_set == 3:
+        elif most_freq_card_count == 3:
             # Full house
             # Pair card should be the only item in working_card_values
             pair_card = working_card_values[0]
-            return ' '.join(['6', max_set_card, str(pair_card)])
+            return [6, most_frequent_card, pair_card]
         else:
-            raise Exception('Neither if statement triggered in the \
-            full house/4 of a kind block.')
+            raise Exception('Neither if statement triggered in the '
+            'full house/4 of a kind block.')
 
     # Straight and flushes have priority over trips, two-pair, and one pair.
-    elif straight or flush:
-        # Flush has priority over straight
-        if flush:
-            second_highest = str(max(working_card_values))
-            working_card_values.remove(int(second_highest))
-            third_highest = str(max(working_card_values))
-            working_card_values.remove(int(third_highest))
-            fourth_highest = str(max(working_card_values))
-            working_card_values.remove(int(fourth_highest))
-            fifth_highest = str(working_card_values[0])
-            return ' '.join(['5',
-                             max_set_card,
-                             second_highest,
-                             third_highest,
-                            fourth_highest,
-                            fifth_highest])
-        elif straight:
-            if 2 and 14 in card_values:
-                return ' '.join(['4', '5'])
-            elif 13 and 14 in card_values:
-                return ' '.join(['4', '14'])
+    elif STRAIGHT or FLUSH:
+        # A flush has priority over a straight due to its higher value.
+        if FLUSH:
+            flush_result = [5, most_frequent_card]
+            # Because working_card_values is sorted, we can repeatedly pop.
+            # the maximum value in the list.
+            # Range must be 4 b/c one card is already accounted for (therefore
+            # range is not 5) and there can be no pairs in a flush.
+            for _ in range(4):
+                max_card = working_card_values.pop()
+                flush_result.append(max_card)
+            assert not working_card_values
+
+            return flush_result 
+            
+        elif STRAIGHT:
+            # Low flush
+            if 2 and 14 in cards_as_int:
+                return [4, 5]
+            # High flush
+            elif 13 and 14 in cards_as_int:
+                return [4, 14]
             else:
-                return ' '.join(['4', max_set_card])
+                return [4, most_frequent_card]
 
     elif len(unique_values) == 3:
-        # Trips or two-pair.
-        if max_set == 3:
+        # Trips (3-of-a-kind) or two-pair
+        if most_freq_card_count == 3:
             # Trips (3 of a kind)
-            kicker = highest_card(working_card_values)
-            return ' '.join(['3', max_set_card, kicker])
+            kicker = max(working_card_values)
+            return [3, most_frequent_card, kicker]
 
-        elif max_set == 2:
+        elif most_freq_card_count == 2:
             # Two pair
-            # One of the pairs is the max_set_card
+            # One of the pairs is most_frequent_card
             # Find lower value pair
-            for card in counter.keys():
-                if counter[card] == 2 and card != max_set_card:
-                    second_pair_card = str(card)
-            kicker = highest_card(working_card_values)
-            return ' '.join(['2', max_set_card, str(lowest_pair), kicker])
+            for card in counter:
+                if counter[card] == 2 and card != most_frequent_card:
+                    second_pair_card = card
+            kicker = max(working_card_values)
+            return [2, most_frequent_card, lowest_pair, kicker]
 
         else:
-            raise Exception('Neither if statement triggered in the trips/\
-            two pair block.')
+            raise Exception('Neither if statement triggered in the \
+            "elif len(unique_values) == 3" block.')
 
     elif len(unique_values) == 4:
         # One pair
-        kicker = str(max(working_card_values))
-        return ' '.join(['1', max_set_card, kicker])
+        kicker = max(working_card_values)
+        return [1, most_frequent_card, kicker]
     
     # If no other returns, return high card
-    second_highest = str(max(working_card_values))
-    working_card_values.remove(int(second_highest))
-    third_highest = str(max(working_card_values))
-    working_card_values.remove(int(third_highest))
-    fourth_highest = str(max(working_card_values))
-    working_card_values.remove(int(fourth_highest))
-    fifth_highest = str(working_card_values[0])
-    return ' '.join(['0',
-                     max_set_card,
-                     second_highest,
-                     third_highest,
-                    fourth_highest,
-                    fifth_highest])
+    high_card_result = [0, most_frequent_card]
+    # There are 4 cards unaccounted for and there can be no pairs. Therefore,
+    # range has an argument of 4.
+    for _ in range(4):
+        max_card = working_card_values.pop()
+        high_card_result.append(max_card)
+    assert not working_card_values
+
+    return high_card_result
 
 
     
-poker_hand_win_count()
+print(poker_hand_win_count())
 
