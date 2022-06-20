@@ -21,8 +21,8 @@ def poker_hand_win_count():
     p2_hands = []
     p1_win_count = 0
 
-    with urllib.request.urlopen(url) as f:
-        for line in f:
+    with urllib.request.urlopen(url) as response:
+        for line in response:
             line = line.decode()
             p1_hands.append(line[:15].strip().split(' '))
             p2_hands.append(line[15:].strip().split(' '))
@@ -61,12 +61,12 @@ def evaluate_hand(hand: list) -> list:
     8 X ----- Straight flush with X as the highest card
     7 X K --- Four of a kind of X, K kicker
     6 X Y --- Full house with trips of X and a pair of Y
-    5 A B C D E - Flush with X as the highest card
+    5 A B C D E - Flush with A as the highest card
     4 X ----- Straight with X as the highest card
-    3 X K --- Trips of X, K as kicker
-    2 X Y 13 - Pair of X, pair of Y, K as kicker
-    1 X K --- Pair of X, K as kicker
-    0 A B C D E - High card A, next-highest card B, third-highest card C
+    3 X A B - Trips (3-of-a-kind) of X. A and B tie-breakers
+    2 X Y 13 - Higher pair of X, lower pair of Y, K as kicker
+    1 X A B C - Pair of X. A, B, and C as tie-breakers
+    0 A B C D E - High card A, next-highest card B, third-highest card C, etc.
     '''
 
     def is_flush(hand: list) -> bool:
