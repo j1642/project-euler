@@ -1,7 +1,11 @@
-# Problem 7 - 10001st prime - did this in another notebook somewhere too
+# Problem 7 - 10001st prime
 # https://projecteuler.net/problem=7
+from time_this import time_this
+
+
 @time_this
 def find_nth_prime(max_count: int):
+    '''Find the 10,001st prime number.'''
     prime_count = 0
     test_num = 2
     while prime_count < max_count:
@@ -15,4 +19,4 @@ def find_nth_prime(max_count: int):
                 return test_num
             test_num += 1
 
-find_nth_prime(10001)
+print(find_nth_prime(10001))
