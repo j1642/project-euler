@@ -1,10 +1,16 @@
 # Problem 13 - Large sum
 # https://projecteuler.net/problem=13
+from time_this import time_this
+
+
 @time_this
-def large_sum(large_nums: str):
+def large_sum(large_nums: str) -> str:
+    '''Return the first ten digits of the sum of the 50-digit numbers in
+    each line.
+    '''
     numbers = large_nums.split('\n')
     numbers_to_sum = [int(i) for i in numbers]
-    
+
     return str(sum(numbers_to_sum))[:10]
 
 nums = '''37107287533902102798797998220837590246510135740250
@@ -109,4 +115,4 @@ nums = '''37107287533902102798797998220837590246510135740250
 53503534226472524250874054075591789781264330331690'''
 
 
-large_sum(nums)
+print(large_sum(nums))

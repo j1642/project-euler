@@ -1,11 +1,15 @@
 # problem 17 - Number letter counts
 # https://projecteuler.net/problem=17
+from time_this import time_this
+
+
+@time_this
 def count_letters(min_number:int, max_number: int):
-    'If all integers 1 to max_number are written out, find amount of letters.'
-    
+    '''If all integers 1 to max_number are written out, find amount of letters.
+    '''
     letters = {0: 0, 'and': 3, 'hundred': 7, 'thousand': 8}
     low_words = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
-              'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 
+              'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen',
               'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen',
               'twenty']
     higher_words = ['thirty', 'forty', 'fifty', 'sixty', 'seventy',
@@ -15,17 +19,19 @@ def count_letters(min_number:int, max_number: int):
         letters[ind + 1] = len(word)
     for ind, word in enumerate(higher_words):
         letters[30 + (10 * ind)] = len(word)
-    
+
     letter_total = 0
     for num in range(min_number, max_number):
-        if num <= 20:
-            letter_total += letters[num]
-        else:
-            letter_total += get_length_gt_20(num, letters)
-        
+        letter_total += get_length_in_letters(num, letters)
+
     return letter_total
-            
-def get_length_gt_20(num: int, letters: dict):
+
+
+def get_length_in_letters(num: int, letters: dict):
+    '''Return the amount of letters if num argument is written out.'''
+    if num <= 20:
+        return letters[num]
+    
     letter_count = 0
     digits = []
     # Extract each digit from num in reverse order (ones place to thousands)
@@ -33,7 +39,6 @@ def get_length_gt_20(num: int, letters: dict):
         digits.append(num % 10)
         num = num // 10
 
-    len_digits = len(digits)
     for ind, digit in enumerate(digits):
         if ind == 3:
             letter_count += letters['thousand'] + letters[digit]
@@ -64,6 +69,6 @@ def get_length_gt_20(num: int, letters: dict):
         elif ind == 0:
             pass
     return letter_count
-        
-    
-count_letters(1, 1001)
+
+
+print(count_letters(1, 1001))

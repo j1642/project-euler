@@ -1,9 +1,6 @@
 # Problem 54 - Poker Hands
 # https://projecteuler.net/problem=54
 
-# Lesson learned: Avoid comparing ints in string form.
-
-# TODO: Refactor as class for testing? Nested functions cannot be tested easily
 
 import urllib.request
 from collections import Counter
@@ -97,8 +94,7 @@ def evaluate_hand(hand: list) -> list:
 
 
     def is_straight(card_values: list) -> bool:
-        '''Input example: [3, 14, 5, 10, 12]
-        '''
+        ''' Is the hand a straight? Input example: [3, 14, 5, 10, 12]'''
         # Caution: Copy card_values parameter to another variable to avoid
         # any appended 1s from bleeding out of this scope.
         card_values_copy = card_values.copy()
@@ -116,7 +112,10 @@ def evaluate_hand(hand: list) -> list:
 
 
     def check_for_pairs(cards_as_int: list) -> tuple:
-        '''Input  example: [14, 5, 9, 10, 11]
+        '''Find any pairs in the hand. The most common, highest value card in
+        the hand becomes most_frequent_card.
+        E.g. K in [2, 5, J, Q, K] or 2 in [2, 2, 3, 4, 10]
+        Input  example: [14, 5, 9, 10, 11]
         Output: tuple(int, int, int)
         '''
         # Check for pairs (full house, 4 of a kind, 3 of a kind, pair, 2-pair).
@@ -144,6 +143,9 @@ def evaluate_hand(hand: list) -> list:
 
 
     def return_4_of_a_kind_or_full_house():
+        '''Called when there is a hand with 3 or 4 of the same card value,
+        and a full house or 4-of-a-kind is the highest possible outome for
+        the player's hand.'''
         # Four of a kind or full house
         if most_freq_card_count == 4:
             # Four of a kind
@@ -165,6 +167,9 @@ def evaluate_hand(hand: list) -> list:
             'full house/4 of a kind block.')
 
     def return_flush():
+        '''Called when a flush is the highest possible outcome for a player's
+        hand.
+        '''
         flush_result = [5, most_frequent_card]
         # Because distinct_cards_as_int is sorted, we can repeatedly pop.
         # the maximum value in the list.
@@ -178,6 +183,9 @@ def evaluate_hand(hand: list) -> list:
         return flush_result
 
     def return_straight():
+        '''Called when a straight is the best possible outcome for a player's
+        hand.
+        '''
         if 14 in cards_as_int:
             # Low straight
             if 2 in cards_as_int:
@@ -192,6 +200,9 @@ def evaluate_hand(hand: list) -> list:
 
 
     def return_3_of_a_kind_or_2_pair():
+        '''Called when a 3-of-a-kind or 2-pair is the best possible outcome for
+        a player's hand.
+        '''
         if most_freq_card_count == 3:
             # Trips (3 of a kind)
             trips_result = [3, most_frequent_card]
@@ -216,6 +227,9 @@ def evaluate_hand(hand: list) -> list:
 
 
     def return_one_pair():
+        '''Called when one pair is the best possible outcome for a player's
+        hand.
+        '''
         one_pair_result = [1, most_frequent_card]
         # Three unpaird cards in the hand and distinct_cards_as_int.
         for _ in range(3):
@@ -227,6 +241,9 @@ def evaluate_hand(hand: list) -> list:
 
 
     def return_high_card():
+        '''Called when a player's hand has no higher value combination of
+        cards.
+        '''
         high_card_result = [0, most_frequent_card]
         # There are 4 cards unaccounted for and there can be no pairs. Therefore,
         # range has an argument of 4.
@@ -292,11 +309,11 @@ def evaluate_hand(hand: list) -> list:
 
 if __name__ == '__main__':
     import unittest
-    
+
+    # Can't test well within closures but we can test the overall output.
     class Testing123(unittest.TestCase):
         def test_answer(self):
             answer = poker_hand_win_count()
             self.assertEqual(answer, 376)
-            #self.assertTrue(poker_hand_win_count.is_straight([2,3,4,5,14]))
-    
+
     unittest.main()
