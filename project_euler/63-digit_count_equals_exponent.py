@@ -3,6 +3,9 @@
 
 # The square of any two digit number will have more than two digits, etc.
 # Therefore all bases to these exponents must be single digits.
+
+from time_this import time_this
+
 @time_this
 def count_n_powers_with_n_digits():
     count = 0
@@ -25,5 +28,7 @@ def count_n_powers_with_n_digits():
                 if num == 1:
                     break
     return count
-        
-count_n_powers_with_n_digits()
+
+
+print(count_n_powers_with_n_digits())
+
