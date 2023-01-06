@@ -1,7 +1,12 @@
 # project-euler
 
-Project Euler offers self-contained problems which require algorithmic thinking to solve.
+Project Euler offers self-contained problems which often require algorithm optimization to solve (in a reasonable amount of time).
 
-The problems generally revolve around number theory, including prime numbers, Ulam spirals, combinatorics, and sets of integers with unique properties.
+The solutions broadly include number theory topics, including:
+- prime numbers
+- prime sieves
+- Ulam spirals
+- combinatorics
+- sets of integers with unique properties
 
-One of the more intensive and unique problems is Problem 54, which requires evaluating and comparing poker hands.
+The [time_this.py decorator](https://github.com/j1642/project-euler/blob/master/project_euler/time_this.py) was written to quantify function execution times.
