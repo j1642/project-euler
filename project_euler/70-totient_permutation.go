@@ -9,7 +9,7 @@ import (
 
 func main() {
 	/* Find the smallest n / phi(n) (Euler's Totient function) for
-	   n <= 1,000,000 where phi(n) is a permutation of the digits of n.*/
+	   n <= 10,000,000 where phi(n) is a permutation of the digits of n.*/
 	defer timer.Timer("main")()
 	maxN := 10_000_000
 	minRatio := math.Inf(1)
@@ -18,16 +18,34 @@ func main() {
 	primes := sievePrimes70(maxN)
 
 	for i := 2; i < maxN; i++ {
-		factors := findPrimeFactors70(i, primes)
 		totient = float64(i)
-		for k, _ := range factors {
-			totient = totient * (1.0 - (1.0 / float64(k)))
+		reduced := i
+		for _, prime := range primes {
+			if prime*prime > reduced {
+				break
+			}
+			if reduced%prime != 0 {
+				continue
+			}
+			for reduced%prime == 0 {
+				reduced /= prime
+			}
+			totient -= totient / float64(prime)
+			if minRatio < float64(i)/totient {
+				break
+			}
+		}
+		/* Account for any missed factors, sometimes due to breaks in the
+		   for block above (like for i=2).*/
+		if reduced > 1 {
+			totient = totient - totient/float64(reduced)
+		}
+		if minRatio < float64(i)/totient {
+			continue
 		}
 		if isPermutation(i, int(totient)) {
-			if minRatio > float64(i)/totient {
-				minRatio = float64(i) / totient
-				ans = i
-			}
+			minRatio = float64(i) / totient
+			ans = i
 		}
 	}
 
@@ -77,43 +95,18 @@ func intToRevSlice(n int) ([]int, error) {
 	return digits, nil
 }
 
-func findPrimeFactors70(n int, primes []int) map[int]bool {
-	/* Prime factorization by trial division of sieved primes.
-	   Only distinct prime divisors are represented in the final map.*/
-	factors := make(map[int]bool)
-	if n%2 == 0 {
-		factors[2] = true
-		n /= 2
-		for n%2 == 0 {
-			n /= 2
-		}
-	}
-	for _, d := range primes {
-		if d*d > n {
-			break
-		}
-		if n%d == 0 {
-			factors[d] = true
-			n /= d
-		}
-	}
-	if n != 1 {
-		factors[n] = true
-	}
-
-	return factors
-}
-
 func sievePrimes70(max int) []int {
 	// Returns slice of prime numbers less than the given int.
+	defer timer.Timer("sievePrimes70")()
 	tf := make([]bool, max)
 	for i, _ := range tf {
 		tf[i] = true
 	}
 
-	for i := 2; i < int(math.Sqrt(float64(max)))+1; i++ {
+	maxI := int(math.Sqrt(float64(max))) + 1
+	for i := 2; i < maxI; i++ {
 		if tf[i] {
-			for j := i * i; j < max; j += i {
+			for j := i * i; j < maxI; j += i {
 				tf[j] = false
 			}
 		}
